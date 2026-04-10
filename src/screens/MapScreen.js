@@ -1,65 +1,30 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
-import * as Location from 'expo-location';
 import { commonStyles } from '../styles/commonStyles';
 import { COLORS } from '../styles/colors';
+import { useAppContext } from '../context/AppContext';
 
-export default function MapScreen() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [coords, setCoords] = useState(null);
+export default function MapScreen({ navigation }) {
+  const { currentLocation, nearbyUsers, isLoadingNearby, nearbyError, loadNearbyUsers } = useAppContext();
 
   useEffect(() => {
-    let isMounted = true;
-
-    const getCurrentLocation = async () => {
-      try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-
-        if (status !== 'granted') {
-          if (isMounted) {
-            setErrorMessage('Location permission denied.');
-          }
-          return;
-        }
-
-        const location = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Balanced,
-        });
-
-        if (isMounted) {
-          setCoords(location.coords);
-        }
-      } catch {
-        if (isMounted) {
-          setErrorMessage('Could not fetch location.');
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    getCurrentLocation();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+    if (!currentLocation && !isLoadingNearby) {
+      loadNearbyUsers();
+    }
+  }, [currentLocation, isLoadingNearby, loadNearbyUsers]);
 
   const region = useMemo(() => {
-    if (!coords) return null;
+    if (!currentLocation) return null;
     return {
-      latitude: coords.latitude,
-      longitude: coords.longitude,
+      latitude: currentLocation.latitude,
+      longitude: currentLocation.longitude,
       latitudeDelta: 0.01,
       longitudeDelta: 0.01,
     };
-  }, [coords]);
+  }, [currentLocation]);
 
-  if (isLoading) {
+  if (isLoadingNearby) {
     return (
       <View style={commonStyles.screen}>
         <ActivityIndicator size="large" color={COLORS.blue} />
@@ -68,10 +33,10 @@ export default function MapScreen() {
     );
   }
 
-  if (errorMessage || !region) {
+  if (nearbyError || !region) {
     return (
       <View style={commonStyles.screen}>
-        <Text style={styles.statusText}>{errorMessage || 'Location unavailable.'}</Text>
+        <Text style={styles.statusText}>{nearbyError || 'Location unavailable.'}</Text>
       </View>
     );
   }
@@ -81,12 +46,24 @@ export default function MapScreen() {
       <MapView style={styles.map} initialRegion={region} showsUserLocation>
         <Marker
           coordinate={{
-            latitude: coords.latitude,
-            longitude: coords.longitude,
+            latitude: currentLocation.latitude,
+            longitude: currentLocation.longitude,
           }}
           title="You"
           description="Current location"
         />
+        {nearbyUsers.map((nearbyUser) => (
+          <Marker
+            key={nearbyUser.id}
+            coordinate={{
+              latitude: nearbyUser.latitude,
+              longitude: nearbyUser.longitude,
+            }}
+            title={nearbyUser.name || nearbyUser.id}
+            description={nearbyUser.id}
+            onPress={() => navigation.navigate('Chat', { user: nearbyUser })}
+          />
+        ))}
       </MapView>
     </View>
   );

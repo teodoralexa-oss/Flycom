@@ -9,6 +9,11 @@ export const commonStyles = StyleSheet.create({
     justifyContent: 'center',
     padding: 16,
   },
+  listScreen: {
+    flex: 1,
+    backgroundColor: COLORS.white,
+    padding: 16,
+  },
   title: {
     fontSize: 28,
     fontWeight: '700',
@@ -49,5 +54,22 @@ export const commonStyles = StyleSheet.create({
     color: COLORS.white,
     fontSize: 16,
     fontWeight: '600',
+  },
+  listItem: {
+    borderWidth: 1,
+    borderColor: COLORS.black,
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 10,
+  },
+  listItemTitle: {
+    color: COLORS.black,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  listItemSub: {
+    color: COLORS.black,
+    fontSize: 13,
+    marginTop: 4,
   },
 });
