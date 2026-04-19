@@ -1,4 +1,4 @@
-import { Text, TextInput, View } from 'react-native';
+import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import NavButton from '../components/NavButton';
 import { commonStyles } from '../styles/commonStyles';
@@ -25,22 +25,58 @@ export default function HomeScreen({ navigation }) {
   }, [user]);
 
   return (
-    <View style={commonStyles.screen}>
-      <Text style={commonStyles.title}>FLYCOM</Text>
-      <Text style={commonStyles.infoText}>
-        {isLoadingUser ? 'Loading user...' : `User: ${displayName}`}
-      </Text>
-      <TextInput
-        style={commonStyles.input}
-        value={usernameInput}
-        onChangeText={setUsernameInput}
-        placeholder="Set username"
-        autoCapitalize="none"
-      />
-      <NavButton label="Save Username" onPress={saveUsername} />
-      <NavButton label="Go to Map" onPress={goToMap} />
-      <NavButton label="Go to Nearby" onPress={goToNearby} />
-      <NavButton label="Go to Chat" onPress={goToChat} />
+    <View style={{ flex: 1, backgroundColor: commonStyles.screen.backgroundColor }}>
+      {/* Top Info Bar */}
+      <View style={commonStyles.topBar}>
+        <Text style={commonStyles.topBarText}>User: {displayName}</Text>
+        <Text style={commonStyles.topBarText}>ID: {user?.id || 'N/A'}</Text>
+      </View>
+
+      {/* Main Content Area */}
+      <View style={{ flex: 1 }}>
+        {/* Map Placeholder */}
+        <View style={commonStyles.mapPlaceholder}>
+          <Text style={commonStyles.mapPlaceholderText}>Map View</Text>
+        </View>
+
+        {/* Consulates Section */}
+        <View style={commonStyles.sectionContainer}>
+          <Text style={commonStyles.sectionTitle}>Consulates</Text>
+          <Text style={commonStyles.infoText}>No consulates nearby</Text>
+        </View>
+
+        {/* Embassies Section */}
+        <View style={commonStyles.sectionContainer}>
+          <Text style={commonStyles.sectionTitle}>Embassies</Text>
+          <Text style={commonStyles.infoText}>No embassies nearby</Text>
+        </View>
+      </View>
+
+      {/* Floating Buttons (SOS, Call Drone) */}
+      <View style={commonStyles.floatingButtons}>
+        <TouchableOpacity style={commonStyles.callDroneButton} onPress={() => {}}>
+          <Text style={commonStyles.callDroneButtonText}>Call Drone</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={commonStyles.sosButton} onPress={() => {}}>
+          <Text style={commonStyles.sosButtonText}>SOS</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Bottom Navigation Bar */}
+      <View style={commonStyles.bottomNav}>
+        <TouchableOpacity style={commonStyles.navButton} onPress={goToChat}>
+          <Text style={{ fontSize: 20 }}>💬</Text>
+          <Text style={commonStyles.navButtonText}>Chat</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={commonStyles.navButton} onPress={() => {}}>
+          <Text style={{ fontSize: 20 }}>🏠</Text>
+          <Text style={commonStyles.navButtonText}>Home</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={commonStyles.navButton} onPress={() => {}}>
+          <Text style={{ fontSize: 20 }}>⚙️</Text>
+          <Text style={commonStyles.navButtonText}>Settings</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }

@@ -5,6 +5,7 @@ import HomeScreen from './src/screens/HomeScreen';
 import MapScreen from './src/screens/MapScreen';
 import NearbyScreen from './src/screens/NearbyScreen';
 import ChatScreen from './src/screens/ChatScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
 import { COLORS } from './src/styles/colors';
 import { AppProvider } from './src/context/AppContext';
 
@@ -18,15 +19,14 @@ export default function App() {
         <Stack.Navigator
           initialRouteName="Home"
           screenOptions={{
-            headerStyle: { backgroundColor: COLORS.blue },
-            headerTintColor: COLORS.white,
-            contentStyle: { backgroundColor: COLORS.white },
+            headerShown: false,
           }}
         >
           <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'FLYCOM' }} />
           <Stack.Screen name="Map" component={MapScreen} />
           <Stack.Screen name="Nearby" component={NearbyScreen} />
           <Stack.Screen name="Chat" component={ChatScreen} />
+          <Stack.Screen name="Settings" component={SettingsScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </AppProvider>
