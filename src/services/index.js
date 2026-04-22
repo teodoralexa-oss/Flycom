@@ -1,2 +1,4 @@
-// Service layer entry point for future API logic.
-export {};
+// Export all services
+export { default as bleService } from './bleService';
+export { loadOrCreateUser, updateUsername } from './userService';
+export { generateNearbyUsers } from './nearbyService';
