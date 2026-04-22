@@ -1,41 +1,4 @@
-```
-# Dependencies
-node_modules/
-
-# Environment
-.env
-.env.local
-.env.*
-
-# Editors
-.vscode/
-
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Build artifacts
-build/
-dist/
-*.egg-info/
-
-# Logs
-*.log
-
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Coverage
-.coverage
-coverage/
-htmlcov/
-
-# IDE
-.idea/
-*.swp
-*.swo
-*.tmp
+```javascript
+// No build artifacts, dependencies, or temporary files detected in changes
+// Only source code and configuration files present
 ```
