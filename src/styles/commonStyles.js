@@ -83,19 +83,12 @@ export const commonStyles = StyleSheet.create({
     color: COLORS.white,
     fontSize: 14,
   },
-  // Map placeholder
-  mapPlaceholder: {
+  // Map container
+  mapContainer: {
     flex: 1,
-    backgroundColor: COLORS.gray,
     marginHorizontal: 16,
     marginVertical: 8,
     borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  mapPlaceholderText: {
-    color: COLORS.black,
-    fontSize: 16,
   },
   // Bottom navigation
   bottomNav: {
@@ -105,6 +98,7 @@ export const commonStyles = StyleSheet.create({
     backgroundColor: COLORS.primaryBlue,
     paddingVertical: 12,
     paddingHorizontal: 8,
+    paddingBottom: 20,
   },
   navButton: {
     alignItems: 'center',
@@ -113,43 +107,88 @@ export const commonStyles = StyleSheet.create({
   },
   navButtonText: {
     color: COLORS.white,
-    fontSize: 14,
+    fontSize: 12,
     marginTop: 4,
   },
-  // Floating buttons container
-  floatingButtons: {
+  // SOS Button - Centered and Larger
+  sosContainer: {
     position: 'absolute',
-    right: 16,
-    bottom: 80,
+    left: 0,
+    right: 0,
+    bottom: 90,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  // SOS button (circular, red)
-  sosButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+  sosButtonLarge: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     backgroundColor: COLORS.red,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    borderWidth: 3,
+    borderColor: COLORS.black,
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 0.5,
+    shadowRadius: 3,
   },
-  sosButtonText: {
+  sosButtonTextLarge: {
+    color: COLORS.white,
+    fontSize: 20,
+    fontWeight: '700',
+    marginTop: 4,
+  },
+  // Add Point Button
+  addPointButton: {
+    position: 'absolute',
+    right: 20,
+    top: 80,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: COLORS.primaryBlue,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: COLORS.black,
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: 2,
+  },
+  // Add Point Menu
+  addPointMenu: {
+    position: 'absolute',
+    right: 20,
+    top: 140,
+    backgroundColor: COLORS.primaryBlue,
+    borderRadius: 8,
+    padding: 8,
+    minWidth: 200,
+    borderWidth: 2,
+    borderColor: COLORS.black,
+  },
+  menuTitle: {
     color: COLORS.white,
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
+    marginBottom: 8,
+    textAlign: 'center',
   },
-  // Call Drone button
-  callDroneButton: {
+  menuOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     backgroundColor: COLORS.primaryBlue,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    marginBottom: 12,
+    borderRadius: 6,
+    marginBottom: 4,
   },
-  callDroneButtonText: {
+  menuOptionText: {
     color: COLORS.white,
     fontSize: 14,
-    fontWeight: '600',
+    marginLeft: 10,
   },
   // Section styles
   sectionContainer: {

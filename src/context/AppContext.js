@@ -12,6 +12,26 @@ export function AppProvider({ children }) {
   const [nearbyUsers, setNearbyUsers] = useState([]);
   const [isLoadingNearby, setIsLoadingNearby] = useState(false);
   const [nearbyError, setNearbyError] = useState('');
+  const [isOnline, setIsOnline] = useState(false);
+  const [connectionType, setConnectionType] = useState('WiFi');
+
+  // Network status monitoring (simplified without NetInfo)
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        const response = await fetch('https://www.google.com', { method: 'HEAD', timeout: 3000 });
+        setIsOnline(response.ok);
+        setConnectionType(response.ok ? 'WiFi' : 'Mesh');
+      } catch {
+        setIsOnline(false);
+        setConnectionType('Mesh');
+      }
+    };
+    
+    checkConnection();
+    const interval = setInterval(checkConnection, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -60,6 +80,7 @@ export function AppProvider({ children }) {
 
       const coords = location.coords;
       setCurrentLocation(coords);
+      setUser(prev => prev ? { ...prev, latitude: coords.latitude, longitude: coords.longitude } : null);
       setNearbyUsers(generateNearbyUsers(coords));
     } catch {
       setNearbyError('Could not fetch location.');
@@ -83,8 +104,10 @@ export function AppProvider({ children }) {
       isLoadingNearby,
       nearbyError,
       loadNearbyUsers,
+      isOnline,
+      connectionType,
     }),
-    [user, isLoadingUser, setUsername, currentLocation, nearbyUsers, isLoadingNearby, nearbyError, loadNearbyUsers]
+    [user, isLoadingUser, setUsername, currentLocation, nearbyUsers, isLoadingNearby, nearbyError, loadNearbyUsers, isOnline, connectionType]
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
