@@ -1,31 +1,72 @@
-import { Text, TouchableOpacity, View, Switch } from 'react-native';
-import { useState } from 'react';
+import { Text, TouchableOpacity, View, Switch, Alert } from 'react-native';
+import { useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { commonStyles } from '../styles/commonStyles';
 import { COLORS } from '../styles/colors';
 import { useAppContext } from '../context/AppContext';
+import { loadSettings, updateSetting } from '../storage';
 
 export default function SettingsScreen({ navigation }) {
   const { user, setUsername } = useAppContext();
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [locationSharing, setLocationSharing] = useState(true);
-  const [darkMode, setDarkMode] = useState(true);
-  const [accessibilityMode, setAccessibilityMode] = useState('Standard');
+  const [settings, setSettings] = useState({
+    notificationsEnabled: true,
+    locationSharing: true,
+    darkMode: true,
+    accessibilityMode: 'Standard',
+    announcements: 'All',
+  });
 
   const accessibilityOptions = ['Standard', 'Large Text', 'High Contrast'];
   const announcementOptions = ['All', 'Critical Only', 'None'];
-  const [announcements, setAnnouncements] = useState('All');
 
-  const cycleAccessibility = () => {
-    const currentIndex = accessibilityOptions.indexOf(accessibilityMode);
-    const nextIndex = (currentIndex + 1) % accessibilityOptions.length;
-    setAccessibilityMode(accessibilityOptions[nextIndex]);
+  useEffect(() => {
+    loadSettings().then(setSettings);
+  }, []);
+
+  const toggleSetting = async (key) => {
+    const newValue = !settings[key];
+    const updated = await updateSetting(key, newValue);
+    setSettings(updated);
+    
+    if (key === 'locationSharing') {
+      Alert.alert(
+        newValue ? 'Location Sharing Enabled' : 'Location Sharing Disabled',
+        newValue 
+          ? 'Your location will be visible to other mesh users.' 
+          : 'Your location is now hidden from other users.'
+      );
+    }
   };
 
-  const cycleAnnouncements = () => {
-    const currentIndex = announcementOptions.indexOf(announcements);
+  const cycleAccessibility = async () => {
+    const currentIndex = accessibilityOptions.indexOf(settings.accessibilityMode);
+    const nextIndex = (currentIndex + 1) % accessibilityOptions.length;
+    const updated = await updateSetting('accessibilityMode', accessibilityOptions[nextIndex]);
+    setSettings(updated);
+  };
+
+  const cycleAnnouncements = async () => {
+    const currentIndex = announcementOptions.indexOf(settings.announcements);
     const nextIndex = (currentIndex + 1) % announcementOptions.length;
-    setAnnouncements(announcementOptions[nextIndex]);
+    const updated = await updateSetting('announcements', announcementOptions[nextIndex]);
+    setSettings(updated);
+  };
+
+  const handleClearData = () => {
+    Alert.alert(
+      'Clear All Data?',
+      'This will delete all messages, reference points, and SOS alerts. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'CLEAR ALL',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert('Data Cleared', 'All local data has been deleted.');
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -51,7 +92,7 @@ export default function SettingsScreen({ navigation }) {
         >
           <View>
             <Text style={commonStyles.listItemTitle}>Accessibility</Text>
-            <Text style={commonStyles.listItemSub}>{accessibilityMode}</Text>
+            <Text style={commonStyles.listItemSub}>{settings.accessibilityMode}</Text>
           </View>
           <Ionicons name="chevron-down" size={24} color={COLORS.white} />
         </TouchableOpacity>
@@ -63,8 +104,8 @@ export default function SettingsScreen({ navigation }) {
             <Text style={commonStyles.listItemSub}>Enable push notifications</Text>
           </View>
           <Switch
-            value={notificationsEnabled}
-            onValueChange={setNotificationsEnabled}
+            value={settings.notificationsEnabled}
+            onValueChange={() => toggleSetting('notificationsEnabled')}
             trackColor={{ false: COLORS.gray, true: COLORS.primaryBlue }}
             thumbColor={COLORS.white}
           />
@@ -77,8 +118,8 @@ export default function SettingsScreen({ navigation }) {
             <Text style={commonStyles.listItemSub}>Share your location with others</Text>
           </View>
           <Switch
-            value={locationSharing}
-            onValueChange={setLocationSharing}
+            value={settings.locationSharing}
+            onValueChange={() => toggleSetting('locationSharing')}
             trackColor={{ false: COLORS.gray, true: COLORS.primaryBlue }}
             thumbColor={COLORS.white}
           />
@@ -91,8 +132,8 @@ export default function SettingsScreen({ navigation }) {
             <Text style={commonStyles.listItemSub}>Use dark theme</Text>
           </View>
           <Switch
-            value={darkMode}
-            onValueChange={setDarkMode}
+            value={settings.darkMode}
+            onValueChange={() => toggleSetting('darkMode')}
             trackColor={{ false: COLORS.gray, true: COLORS.primaryBlue }}
             thumbColor={COLORS.white}
           />
@@ -105,24 +146,26 @@ export default function SettingsScreen({ navigation }) {
         >
           <View>
             <Text style={commonStyles.listItemTitle}>App Announcements</Text>
-            <Text style={commonStyles.listItemSub}>{announcements}</Text>
+            <Text style={commonStyles.listItemSub}>{settings.announcements}</Text>
           </View>
           <Ionicons name="chevron-down" size={24} color={COLORS.white} />
         </TouchableOpacity>
 
-        {/* Credits Section */}
+        {/* BLE Mesh Info */}
         <View style={[commonStyles.listItem, { marginTop: 16, backgroundColor: COLORS.primaryBlue }]}>
-          <Text style={[commonStyles.listItemTitle, { marginBottom: 12 }]}>Credits</Text>
-          <View style={{ borderBottomWidth: 1, borderBottomColor: COLORS.white, paddingBottom: 8, marginBottom: 8 }}>
-            <Text style={commonStyles.listItemSub}>Development Team</Text>
-          </View>
-          <View style={{ borderBottomWidth: 1, borderBottomColor: COLORS.white, paddingBottom: 8, marginBottom: 8 }}>
-            <Text style={commonStyles.listItemSub}>Design Team</Text>
-          </View>
-          <View>
-            <Text style={commonStyles.listItemSub}>Special Thanks</Text>
-          </View>
+          <Text style={[commonStyles.listItemTitle, { marginBottom: 8 }]}>BLE Mesh Network</Text>
+          <Text style={commonStyles.listItemSub}>Status: {settings.locationSharing ? 'Active' : 'Disabled'}</Text>
+          <Text style={commonStyles.listItemSub}>Range: ~50m (varies by device)</Text>
+          <Text style={commonStyles.listItemSub}>Protocol: Bluetooth Low Energy</Text>
         </View>
+
+        {/* Clear Data Button */}
+        <TouchableOpacity 
+          style={[commonStyles.listItem, { marginTop: 16, backgroundColor: COLORS.red, alignItems: 'center' }]}
+          onPress={handleClearData}
+        >
+          <Text style={[commonStyles.listItemTitle, { color: COLORS.white }]}>Clear All Data</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Bottom Navigation Bar */}

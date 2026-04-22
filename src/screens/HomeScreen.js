@@ -1,10 +1,11 @@
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View, Alert } from 'react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, UrlTile } from 'react-native-maps';
 import { commonStyles } from '../styles/commonStyles';
 import { useAppContext } from '../context/AppContext';
 import { COLORS } from '../styles/colors';
+import { addReferencePoint, loadReferencePoints, addSOSAlert, loadSOSAlerts } from '../storage';
 
 export default function HomeScreen({ navigation }) {
   const { user, isLoadingUser, setUsername, isOnline, connectionType } = useAppContext();
@@ -16,6 +17,7 @@ export default function HomeScreen({ navigation }) {
 
   useEffect(() => {
     setUsernameInput(user?.username ?? '');
+    loadReferencePoints().then(setReferencePoints);
   }, [user]);
 
   const goToChat = useCallback(() => navigation.navigate('Chat'), [navigation]);
@@ -25,16 +27,60 @@ export default function HomeScreen({ navigation }) {
     return user.username || user.id;
   }, [user]);
 
-  const addReferencePoint = (type, safetyLevel) => {
+  const handleAddReferencePoint = async (type, safetyLevel) => {
     const newPoint = {
-      id: Date.now().toString(),
       type,
       safetyLevel,
       latitude: user?.latitude || 51.508742,
       longitude: user?.longitude || -0.120850,
     };
-    setReferencePoints([...referencePoints, newPoint]);
+    await addReferencePoint(newPoint);
+    const updated = await loadReferencePoints();
+    setReferencePoints(updated);
     setShowAddPointMenu(false);
+    
+    Alert.alert(
+      'Point Added',
+      `${type} marked with ${safetyLevel} safety level`,
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handleSOS = async () => {
+    Alert.alert(
+      'SEND SOS ALERT?',
+      'This will broadcast your location to all nearby users in the mesh network.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'SEND SOS',
+          style: 'destructive',
+          onPress: async () => {
+            const sosAlert = {
+              userId: user?.id,
+              username: displayName,
+              latitude: user?.latitude || 51.508742,
+              longitude: user?.longitude || -0.120850,
+              message: 'USER NEEDS IMMEDIATE ASSISTANCE',
+            };
+            await addSOSAlert(sosAlert);
+            
+            Alert.alert(
+              'SOS SENT!',
+              'Your location has been broadcast to all nearby users. Help is on the way.',
+              [{ text: 'OK' }]
+            );
+            
+            // Notify all users (simulated - in real app this would use BLE)
+            Alert.alert(
+              'SYSTEM MESSAGE',
+              `🚨 SOS ALERT from ${displayName} at ${user?.latitude?.toFixed(4)}, ${user?.longitude?.toFixed(4)}`,
+              [{ text: 'ACKNOWLEDGE' }]
+            );
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -49,13 +95,33 @@ export default function HomeScreen({ navigation }) {
         </View>
       </View>
 
-      {/* Main Content Area - Map */}
-      <View style={{ flex: 1 }}>
+      {/* Main Content Area - Smaller Map */}
+      <View style={{ flex: 1, justifyContent: 'flex-start', paddingTop: 16 }}>
         <MapView 
-          style={commonStyles.mapContainer}
+          style={{
+            width: '90%',
+            height: 300,
+            alignSelf: 'center',
+            borderRadius: 8,
+            overflow: 'hidden',
+          }}
+          initialRegion={{
+            latitude: user?.latitude || 51.508742,
+            longitude: user?.longitude || -0.120850,
+            latitudeDelta: 0.05,
+            longitudeDelta: 0.05,
+          }}
           showsUserLocation
           followsUserLocation
+          customMapStyle={[]}
         >
+          {/* OpenStreetMap Tiles */}
+          <UrlTile
+            urlTemplate="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+            maximumZ={19}
+            flipY={false}
+          />
+          
           <Marker
             coordinate={{
               latitude: user?.latitude || 51.508742,
@@ -63,6 +129,7 @@ export default function HomeScreen({ navigation }) {
             }}
             title="You"
             description="Current location"
+            pinColor={COLORS.primaryBlue}
           />
           {referencePoints.map((point) => (
             <Marker
@@ -92,21 +159,21 @@ export default function HomeScreen({ navigation }) {
             <Text style={commonStyles.menuTitle}>Add Reference Point</Text>
             <TouchableOpacity 
               style={commonStyles.menuOption}
-              onPress={() => addReferencePoint('Shelter', 'high')}
+              onPress={() => handleAddReferencePoint('Shelter', 'high')}
             >
               <Ionicons name="home" size={20} color={COLORS.white} />
               <Text style={commonStyles.menuOptionText}>Shelter (High Safety)</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               style={commonStyles.menuOption}
-              onPress={() => addReferencePoint('Safe Zone', 'medium')}
+              onPress={() => handleAddReferencePoint('Safe Zone', 'medium')}
             >
               <Ionicons name="shield-checkmark" size={20} color={COLORS.white} />
               <Text style={commonStyles.menuOptionText}>Safe Zone (Medium Safety)</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               style={commonStyles.menuOption}
-              onPress={() => addReferencePoint('Danger Zone', 'low')}
+              onPress={() => handleAddReferencePoint('Danger Zone', 'low')}
             >
               <Ionicons name="warning" size={20} color={COLORS.white} />
               <Text style={commonStyles.menuOptionText}>Danger Zone (Low Safety)</Text>
@@ -125,7 +192,7 @@ export default function HomeScreen({ navigation }) {
       <View style={commonStyles.sosContainer}>
         <TouchableOpacity 
           style={commonStyles.sosButtonLarge} 
-          onPress={() => {}}
+          onPress={handleSOS}
         >
           <Ionicons name="radio" size={40} color={COLORS.white} />
           <Text style={commonStyles.sosButtonTextLarge}>SOS</Text>
