@@ -1,4 +1,4 @@
-import { Text, TouchableOpacity, View, Alert } from 'react-native';
+import { Text, TouchableOpacity, View, Alert, ScrollView } from 'react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import MapView, { Marker, UrlTile } from 'react-native-maps';
@@ -85,8 +85,8 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: COLORS.darkBg }}>
-      {/* Top Info Bar */}
-      <View style={commonStyles.topBar}>
+      {/* Top Info Bar - Moved down with marginTop */}
+      <View style={[commonStyles.topBar, { marginTop: 10 }]}>
         <View style={{ flexDirection: 'column' }}>
           <Text style={commonStyles.topBarText}>User: {displayName}</Text>
           <Text style={[commonStyles.topBarText, { fontSize: 12, marginTop: 4 }]}>
@@ -95,109 +95,116 @@ export default function HomeScreen({ navigation }) {
         </View>
       </View>
 
-      {/* Main Content Area - Smaller Map */}
-      <View style={{ flex: 1, justifyContent: 'flex-start', paddingTop: 16 }}>
-        <MapView 
-          style={{
-            width: '90%',
-            height: 300,
-            alignSelf: 'center',
-            borderRadius: 8,
-            overflow: 'hidden',
-          }}
-          initialRegion={{
-            latitude: user?.latitude || 51.508742,
-            longitude: user?.longitude || -0.120850,
-            latitudeDelta: 0.05,
-            longitudeDelta: 0.05,
-          }}
-          showsUserLocation
-          followsUserLocation
-          customMapStyle={[]}
-        >
-          {/* OpenStreetMap Tiles */}
-          <UrlTile
-            urlTemplate="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-            maximumZ={19}
-            flipY={false}
-          />
-          
-          <Marker
-            coordinate={{
+      {/* Main Content Area - Scrollable */}
+      <ScrollView 
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: 100 }}
+        showsVerticalScrollIndicator={true}
+      >
+        {/* Map Section */}
+        <View style={{ alignItems: 'center', paddingTop: 16 }}>
+          <MapView 
+            style={{
+              width: '90%',
+              height: 300,
+              borderRadius: 8,
+              overflow: 'hidden',
+              backgroundColor: '#e5e5e5',
+            }}
+            initialRegion={{
               latitude: user?.latitude || 51.508742,
               longitude: user?.longitude || -0.120850,
+              latitudeDelta: 0.05,
+              longitudeDelta: 0.05,
             }}
-            title="You"
-            description="Current location"
-            pinColor={COLORS.primaryBlue}
-          />
-          {referencePoints.map((point) => (
-            <Marker
-              key={point.id}
-              coordinate={{
-                latitude: point.latitude,
-                longitude: point.longitude,
-              }}
-              title={point.type}
-              description={`Safety Level: ${point.safetyLevel}`}
-              pinColor={point.safetyLevel === 'high' ? COLORS.green : point.safetyLevel === 'medium' ? COLORS.orange : COLORS.red}
+            showsUserLocation
+            followsUserLocation
+            customMapStyle={[]}
+          >
+            {/* OpenStreetMap Tiles */}
+            <UrlTile
+              urlTemplate="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+              maximumZ={19}
+              flipY={false}
             />
-          ))}
-        </MapView>
+            
+            <Marker
+              coordinate={{
+                latitude: user?.latitude || 51.508742,
+                longitude: user?.longitude || -0.120850,
+              }}
+              title="You"
+              description="Current location"
+              pinColor={COLORS.primaryBlue}
+            />
+            {referencePoints.map((point) => (
+              <Marker
+                key={point.id}
+                coordinate={{
+                  latitude: point.latitude,
+                  longitude: point.longitude,
+                }}
+                title={point.type}
+                description={`Safety Level: ${point.safetyLevel}`}
+                pinColor={point.safetyLevel === 'high' ? COLORS.green : point.safetyLevel === 'medium' ? COLORS.orange : COLORS.red}
+              />
+            ))}
+          </MapView>
 
-        {/* Add Point Button */}
-        <TouchableOpacity 
-          style={commonStyles.addPointButton}
-          onPress={() => setShowAddPointMenu(!showAddPointMenu)}
-        >
-          <Ionicons name="add-circle" size={30} color={COLORS.white} />
-        </TouchableOpacity>
+          {/* Add Point Button */}
+          <TouchableOpacity 
+            style={commonStyles.addPointButton}
+            onPress={() => setShowAddPointMenu(!showAddPointMenu)}
+          >
+            <Ionicons name="add-circle" size={30} color={COLORS.white} />
+          </TouchableOpacity>
 
-        {/* Add Point Menu */}
-        {showAddPointMenu && (
-          <View style={commonStyles.addPointMenu}>
-            <Text style={commonStyles.menuTitle}>Add Reference Point</Text>
-            <TouchableOpacity 
-              style={commonStyles.menuOption}
-              onPress={() => handleAddReferencePoint('Shelter', 'high')}
-            >
-              <Ionicons name="home" size={20} color={COLORS.white} />
-              <Text style={commonStyles.menuOptionText}>Shelter (High Safety)</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={commonStyles.menuOption}
-              onPress={() => handleAddReferencePoint('Safe Zone', 'medium')}
-            >
-              <Ionicons name="shield-checkmark" size={20} color={COLORS.white} />
-              <Text style={commonStyles.menuOptionText}>Safe Zone (Medium Safety)</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={commonStyles.menuOption}
-              onPress={() => handleAddReferencePoint('Danger Zone', 'low')}
-            >
-              <Ionicons name="warning" size={20} color={COLORS.white} />
-              <Text style={commonStyles.menuOptionText}>Danger Zone (Low Safety)</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[commonStyles.menuOption, { backgroundColor: COLORS.darkBg }]}
-              onPress={() => setShowAddPointMenu(false)}
-            >
-              <Text style={[commonStyles.menuOptionText, { color: COLORS.primaryBlue }]}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
+          {/* Add Point Menu */}
+          {showAddPointMenu && (
+            <View style={commonStyles.addPointMenu}>
+              <Text style={commonStyles.menuTitle}>Add Reference Point</Text>
+              <TouchableOpacity 
+                style={commonStyles.menuOption}
+                onPress={() => handleAddReferencePoint('Shelter', 'high')}
+              >
+                <Ionicons name="home" size={20} color={COLORS.white} />
+                <Text style={commonStyles.menuOptionText}>Shelter (High Safety)</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={commonStyles.menuOption}
+                onPress={() => handleAddReferencePoint('Safe Zone', 'medium')}
+              >
+                <Ionicons name="shield-checkmark" size={20} color={COLORS.white} />
+                <Text style={commonStyles.menuOptionText}>Safe Zone (Medium Safety)</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={commonStyles.menuOption}
+                onPress={() => handleAddReferencePoint('Danger Zone', 'low')}
+              >
+                <Ionicons name="warning" size={20} color={COLORS.white} />
+                <Text style={commonStyles.menuOptionText}>Danger Zone (Low Safety)</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[commonStyles.menuOption, { backgroundColor: COLORS.darkBg }]}
+                onPress={() => setShowAddPointMenu(false)}
+              >
+                <Text style={[commonStyles.menuOptionText, { color: COLORS.primaryBlue }]}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
 
-      {/* SOS Button - Centered and Larger */}
-      <View style={commonStyles.sosContainer}>
-        <TouchableOpacity 
-          style={commonStyles.sosButtonLarge} 
-          onPress={handleSOS}
-        >
-          <Ionicons name="radio" size={40} color={COLORS.white} />
-          <Text style={commonStyles.sosButtonTextLarge}>SOS</Text>
-        </TouchableOpacity>
-      </View>
+        {/* SOS Button - Centered and Moved Up */}
+        <View style={[commonStyles.sosContainer, { bottom: 120 }]}>
+          <TouchableOpacity 
+            style={commonStyles.sosButtonLarge} 
+            onPress={handleSOS}
+          >
+            <Ionicons name="radio" size={40} color={COLORS.white} />
+            <Text style={commonStyles.sosButtonTextLarge}>SOS</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
 
       {/* Bottom Navigation Bar */}
       <View style={commonStyles.bottomNav}>
