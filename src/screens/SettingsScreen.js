@@ -1,4 +1,4 @@
-import { Text, TouchableOpacity, View, Switch, Alert } from 'react-native';
+import { Text, TouchableOpacity, View, Switch, Alert, ScrollView } from 'react-native';
 import { useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { commonStyles } from '../styles/commonStyles';
@@ -77,8 +77,11 @@ export default function SettingsScreen({ navigation }) {
         <Text style={commonStyles.topBarText}>v1.0.0</Text>
       </View>
 
-      {/* Main Content Area */}
-      <View style={{ flex: 1, padding: 16 }}>
+      {/* Main Content Area with ScrollView */}
+      <ScrollView 
+        style={{ flex: 1 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+      >
         {/* User Section */}
         <View style={[commonStyles.listItem, { marginTop: 8 }]}>
           <Text style={commonStyles.listItemTitle}>User ID</Text>
@@ -166,7 +169,7 @@ export default function SettingsScreen({ navigation }) {
         >
           <Text style={[commonStyles.listItemTitle, { color: COLORS.white }]}>Clear All Data</Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
 
       {/* Bottom Navigation Bar */}
       <View style={commonStyles.bottomNav}>

@@ -1,4 +1,4 @@
-import { Text, TouchableOpacity, View, TextInput, FlatList, Alert } from 'react-native';
+import { Text, TouchableOpacity, View, TextInput, FlatList, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { commonStyles } from '../styles/commonStyles';
@@ -93,7 +93,11 @@ export default function ChatScreen({ navigation }) {
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: COLORS.darkBg }}>
+    <KeyboardAvoidingView 
+      style={{ flex: 1, backgroundColor: COLORS.darkBg }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={80}
+    >
       {/* Top Info Bar */}
       <View style={commonStyles.topBar}>
         <Text style={commonStyles.topBarText}>Messages</Text>
@@ -123,38 +127,39 @@ export default function ChatScreen({ navigation }) {
         ))}
       </View>
 
-      {/* Channel Selection for Embassies/Consulates */}
-      {(activeTab === 'embassies' || activeTab === 'consulates') && !selectedChannel && (
-        <View style={{ padding: 16 }}>
-          <Text style={commonStyles.subtitle}>Select Channel</Text>
-          <Text style={{ color: COLORS.gray, fontSize: 12, marginBottom: 12 }}>
-            {activeTab === 'embassies' ? 'Embassy channels - Officials only can post' : 'Consulate channels - Officials only can post'}
-          </Text>
-          {(activeTab === 'embassies' ? embassyChannels : consulateChannels).map((channel) => (
+      {/* Main Content with Scroll */}
+      <View style={{ flex: 1 }}>
+        {/* Channel Selection for Embassies/Consulates */}
+        {(activeTab === 'embassies' || activeTab === 'consulates') && !selectedChannel && (
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingBottom: 80 }}>
+            <Text style={commonStyles.subtitle}>Select Channel</Text>
+            <Text style={{ color: COLORS.gray, fontSize: 12, marginBottom: 12 }}>
+              {activeTab === 'embassies' ? 'Embassy channels - Officials only can post' : 'Consulate channels - Officials only can post'}
+            </Text>
+            {(activeTab === 'embassies' ? embassyChannels : consulateChannels).map((channel) => (
+              <TouchableOpacity
+                key={channel.id}
+                style={[commonStyles.listItem, { marginTop: 8 }]}
+                onPress={() => setSelectedChannel(channel.id)}
+              >
+                <Text style={commonStyles.listItemTitle}>{channel.name}</Text>
+                <Text style={commonStyles.listItemSub}>{channel.location}</Text>
+              </TouchableOpacity>
+            ))}
             <TouchableOpacity
-              key={channel.id}
-              style={[commonStyles.listItem, { marginTop: 8 }]}
-              onPress={() => setSelectedChannel(channel.id)}
+              style={[commonStyles.listItem, { marginTop: 8, backgroundColor: COLORS.darkBg }]}
+              onPress={() => setActiveTab('chat')}
             >
-              <Text style={commonStyles.listItemTitle}>{channel.name}</Text>
-              <Text style={commonStyles.listItemSub}>{channel.location}</Text>
+              <Text style={[commonStyles.listItemTitle, { color: COLORS.primaryBlue }]}>Back to Chat</Text>
             </TouchableOpacity>
-          ))}
-          <TouchableOpacity
-            style={[commonStyles.listItem, { marginTop: 8, backgroundColor: COLORS.darkBg }]}
-            onPress={() => setActiveTab('chat')}
-          >
-            <Text style={[commonStyles.listItemTitle, { color: COLORS.primaryBlue }]}>Back to Chat</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+          </ScrollView>
+        )}
 
-      {/* Messages List */}
-      {(activeTab === 'chat' || selectedChannel) && (
-        <>
-          <View style={{ flex: 1, paddingHorizontal: 16 }}>
+        {/* Messages List */}
+        {(activeTab === 'chat' || selectedChannel) && (
+          <View style={{ flex: 1 }}>
             {selectedChannel && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, paddingHorizontal: 16 }}>
                 <TouchableOpacity onPress={() => setSelectedChannel(null)}>
                   <Ionicons name="arrow-back" size={24} color={COLORS.white} />
                 </TouchableOpacity>
@@ -164,36 +169,32 @@ export default function ChatScreen({ navigation }) {
               </View>
             )}
             
-            {filteredMessages.length === 0 ? (
-              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <Text style={{ color: COLORS.gray }}>No messages yet</Text>
-              </View>
-            ) : (
-              <FlatList
-                data={filteredMessages}
-                renderItem={renderMessage}
-                keyExtractor={(item) => item.id}
-                inverted={false}
-              />
-            )}
-          </View>
-
-          {/* Message Input */}
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.textInput}
-              placeholder={selectedChannel ? "Type a message..." : "Peer-to-peer chat..."}
-              placeholderTextColor={COLORS.gray}
-              value={messageText}
-              onChangeText={setMessageText}
-              multiline
+            <FlatList
+              data={filteredMessages}
+              renderItem={renderMessage}
+              keyExtractor={(item) => item.id}
+              inverted={false}
+              contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 80 }}
+              keyboardShouldPersistTaps="handled"
             />
-            <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
-              <Ionicons name="send" size={24} color={COLORS.white} />
-            </TouchableOpacity>
+
+            {/* Message Input */}
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.textInput}
+                placeholder={selectedChannel ? "Type a message..." : "Peer-to-peer chat..."}
+                placeholderTextColor={COLORS.gray}
+                value={messageText}
+                onChangeText={setMessageText}
+                multiline
+              />
+              <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
+                <Ionicons name="send" size={24} color={COLORS.white} />
+              </TouchableOpacity>
+            </View>
           </View>
-        </>
-      )}
+        )}
+      </View>
 
       {/* Bottom Navigation Bar */}
       <View style={commonStyles.bottomNav}>
@@ -210,7 +211,7 @@ export default function ChatScreen({ navigation }) {
           <Text style={commonStyles.navButtonText}>Settings</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
